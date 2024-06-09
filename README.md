@@ -1,6 +1,7 @@
 # Trabalho-Final
 Trabalho Prático: Programação de Soluções Computacionais
 
+Nomes: Maria Clara Palhares Diniz Braz e Laysa Eduarda Moraes Serrão.
 
 
 Estrutura do Trabalho
