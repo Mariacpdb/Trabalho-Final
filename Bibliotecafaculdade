@@ -1,0 +1,236 @@
+package com.mycompany.projetoativmontanha;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+class Livro implements Serializable {
+    private String titulo;
+    private String autor;
+    private boolean emprestado;
+
+    public Livro(String titulo, String autor) {
+        this.titulo = titulo;
+        this.autor = autor;
+        this.emprestado = false;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public String getAutor() {
+        return autor;
+    }
+
+    public boolean isEmprestado() {
+        return emprestado;
+    }
+
+    public void setEmprestado(boolean emprestado) {
+        this.emprestado = emprestado;
+    }
+
+    @Override
+    public String toString() {
+        return "Livro{" + "titulo='" + titulo + '\'' + ", autor='" + autor + '\'' + ", emprestado=" + emprestado + '}';
+    }
+}
+
+class Aluno implements Serializable {
+    private String nome;
+    private String matricula;
+
+    public Aluno(String nome, String matricula) {
+        this.nome = nome;
+        this.matricula = matricula;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getMatricula() {
+        return matricula;
+    }
+
+    @Override
+    public String toString() {
+        return "Aluno{" + "nome='" + nome + '\'' + ", matricula='" + matricula + '\'' + '}';
+    }
+}
+
+class Biblioteca {
+    private List<Livro> livros;
+    private List<Aluno> alunos;
+    private Map<Livro, Aluno> emprestimos;
+
+    public Biblioteca() {
+        this.livros = new ArrayList<>();
+        this.alunos = new ArrayList<>();
+        this.emprestimos = new HashMap<>();
+    }
+
+    public void cadastrarLivro(String titulo, String autor) {
+        try {
+            livros.add(new Livro(titulo, autor));
+            System.out.println("Livro cadastrado com sucesso: " + titulo);
+        } catch (Exception e) {
+            System.out.println("Erro ao cadastrar livro: " + e.getMessage());
+        }
+    }
+
+    public void cadastrarAluno(String nome, String matricula) {
+        try {
+            alunos.add(new Aluno(nome, matricula));
+            System.out.println("Aluno cadastrado com sucesso: " + nome);
+        } catch (Exception e) {
+            System.out.println("Erro ao cadastrar aluno: " + e.getMessage());
+        }
+    }
+
+    public void emprestarLivro(String titulo, String matricula) {
+        try {
+            Livro livro = encontrarLivro(titulo);
+            Aluno aluno = encontrarAluno(matricula);
+
+            if (livro == null) {
+                throw new Exception("Livro não encontrado.");
+            }
+            
+            if (aluno == null) {
+                throw new Exception("Aluno não encontrado.");
+            }
+            
+            if (!livro.isEmprestado()) {
+                livro.setEmprestado(true);
+                emprestimos.put(livro, aluno);
+                System.out.println("Livro emprestado com sucesso!");
+            } else {
+                System.out.println("Empréstimo não pode ser realizado. Livro já está emprestado.");
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao emprestar livro: " + e.getMessage());
+        }
+    }
+
+    public void devolverLivro(String titulo) {
+        try {
+            Livro livro = encontrarLivro(titulo);
+
+            if (livro == null) {
+                throw new Exception("Livro não encontrado.");
+            }
+            
+            if (livro.isEmprestado()) {
+                livro.setEmprestado(false);
+                emprestimos.remove(livro);
+                System.out.println("Livro devolvido com sucesso!");
+            } else {
+                System.out.println("Devolução não pode ser realizada. Livro não está emprestado.");
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao devolver livro: " + e.getMessage());
+        }
+    }
+
+    public void consultarDisponibilidade(String titulo) {
+        try {
+            Livro livro = encontrarLivro(titulo);
+
+            if (livro != null) {
+                if (livro.isEmprestado()) {
+                    System.out.println("Livro não está disponível.");
+                } else {
+                    System.out.println("Livro está disponível.");
+                }
+            } else {
+                System.out.println("Livro não encontrado.");
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao consultar disponibilidade: " + e.getMessage());
+        }
+    }
+
+    public void gerarRelatorioEmprestimos() {
+        try {
+            System.out.println("Relatório de Empréstimos:");
+            for (Map.Entry<Livro, Aluno> entry : emprestimos.entrySet()) {
+                Livro livro = entry.getKey();
+                Aluno aluno = entry.getValue();
+                System.out.println("Livro: " + livro.getTitulo() + " - Aluno: " + aluno.getNome());
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao gerar relatório de empréstimos: " + e.getMessage());
+        }
+    }
+
+    private Livro encontrarLivro(String titulo) {
+        for (Livro livro : livros) {
+            if (livro.getTitulo().equalsIgnoreCase(titulo)) {
+                return livro;
+            }
+        }
+        return null;
+    }
+
+    private Aluno encontrarAluno(String matricula) {
+        for (Aluno aluno : alunos) {
+            if (aluno.getMatricula().equalsIgnoreCase(matricula)) {
+                return aluno;
+            }
+        }
+        return null;
+    }
+
+    public void salvarDados() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("biblioteca.dat"))) {
+            oos.writeObject(livros);
+            oos.writeObject(alunos);
+            oos.writeObject(emprestimos);
+            System.out.println("Dados salvos com sucesso!");
+        } catch (IOException e) {
+            System.out.println("Erro ao salvar dados: " + e.getMessage());
+        }
+    }
+
+    public void carregarDados() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("biblioteca.dat"))) {
+            livros = (List<Livro>) ois.readObject();
+            alunos = (List<Aluno>) ois.readObject();
+            emprestimos = (Map<Livro, Aluno>) ois.readObject();
+            System.out.println("Dados carregados com sucesso!");
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Erro ao carregar dados: " + e.getMessage());
+        }
+    }
+}
+
+public class ProjetoAtivMontanha {
+    public static void main(String[] args) {
+        Biblioteca biblioteca = new Biblioteca();
+
+        // Carregar dados salvos
+        biblioteca.carregarDados();
+
+        // Cadastrar alguns livros e alunos
+        biblioteca.cadastrarLivro("O Senhor dos Anéis", "J.R.R. Tolkien");
+        biblioteca.cadastrarLivro("1984", "George Orwell");
+        biblioteca.cadastrarAluno("Alice", "20230001");
+        biblioteca.cadastrarAluno("Bob", "20230002");
+
+        // Realizar algumas operações
+        biblioteca.emprestarLivro("1984", "20230001");
+        biblioteca.consultarDisponibilidade("1984");
+        biblioteca.devolverLivro("1984");
+        biblioteca.consultarDisponibilidade("1984");
+
+        // Gerar relatório de empréstimos
+        biblioteca.gerarRelatorioEmprestimos();
+
+        // Salvar dados ao final das operações
+        biblioteca.salvarDados();
+    }
+}
